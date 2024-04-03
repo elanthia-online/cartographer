@@ -1,0 +1,19 @@
+{
+  "name": "@eol/cartograph",
+  "module": "index.ts",
+  "type": "module",
+  "bin": {
+    "mapdb": "./mapdb/cli.ts"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "ora": "^7.0.1",
+    "zod": "^3.22.2"
+  }
+}
