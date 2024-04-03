@@ -1,6 +1,13 @@
 import ora from "ora"
 import * as Project from "../project"
-export async function download ({url}: {url: string}) {
+const DEFAULT_MAPDB_URL = "https://github.com/FarFigNewGut/lich_repo_mirror/raw/main/gs_map/gs_map.json"
+
+type DownloadOpts = {
+  url? : string;
+}
+
+export async function download (opts? : DownloadOpts) {
+  const url = (opts || {}).url || DEFAULT_MAPDB_URL
   const spinner = ora()
   spinner.start(`downloading ${url}...`)
   try {
