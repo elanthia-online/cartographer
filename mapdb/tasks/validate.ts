@@ -1,5 +1,6 @@
 import {Project} from "../project"
-import { RoomSchema } from "../schema/room"
+import { Room } from "../room"
+import { RoomValidator } from "../validators/room"
 import * as _ from "underscore"
 import { fromError } from 'zod-validation-error'
 
@@ -7,17 +8,22 @@ export interface ValidateConfig {
   project: Project;
 }
 
+export interface RoomValidationError {
+  title: string;
+  id: number;
+  error: string;
+}
+
 export async function validate (config : ValidateConfig) {
   const rooms = await config.project.readMap()
-  const errors = [] as Record<string, string>[]
-  const validated = [] as Array<ReturnType<typeof RoomSchema.parse>>
-  for (const room of rooms) {
+  const errors = [] as Array<RoomValidationError>
+  const validated = [] as Array<Room>
+  for (const pending of rooms) {
     try {
-      const result = RoomSchema.parse(room)
-      validated.push(result)
+      validated.push(Room.validate(pending))
     } catch (err : any) {
       const humanized = fromError(err)
-      errors.push({title: room.title[0], id: room.id, error: humanized.toString()})
+      errors.push({title: pending.title[0], id: pending.id, error: humanized.toString()})
     }
   }
 

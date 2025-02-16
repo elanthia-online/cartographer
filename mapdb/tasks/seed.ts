@@ -1,9 +1,10 @@
-import {Project} from "../project"
+import {type Project} from "../project"
+import { validate } from "./validate"
 
 export interface SeedOptions {
   project: Project;
 }
 
-export function seed (options : SeedOptions) {
-
+export async function seed (options : SeedOptions) {
+  const {errors, rooms} = await validate(options)
 }

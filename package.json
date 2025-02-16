@@ -15,6 +15,7 @@
     "@types/underscore": "^1.13.0",
     "commander": "^11.0.0",
     "ora": "^7.0.1",
+    "safe-stable-stringify": "^2.5.0",
     "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0"
   }

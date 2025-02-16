@@ -1,5 +1,5 @@
 import * as z from "zod"
-export const ClimateSchema = z.enum([
+export const ClimateValidator = z.enum([
     "arid",
     "arid, temperate",
     "cold, damp",

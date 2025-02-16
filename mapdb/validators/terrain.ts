@@ -1,5 +1,5 @@
 import * as z from "zod"
-export const TerrainSchema = z.enum([
+export const TerrainValidator = z.enum([
     "barren scrub",
     "coniferous",
     "coniferous forest",
