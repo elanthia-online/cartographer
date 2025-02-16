@@ -1,14 +1,7 @@
-import * as Project from "../project"
-
-export enum Mode {
-  Production,
-  Test
-}
+import {Project} from "../project"
 
 export interface SeedOptions {
-  mode: Mode;
-  file: string;
-  world: "gemstone" | "dragonrealms"
+  project: Project;
 }
 
 export function seed (options : SeedOptions) {

@@ -17,7 +17,7 @@ export async function validate (config : ValidateConfig) {
       validated.push(result)
     } catch (err : any) {
       const humanized = fromError(err)
-      errors.push({id: room.id, error: humanized.toString()})
+      errors.push({title: room.title[0], id: room.id, error: humanized.toString()})
     }
   }
 

@@ -11,7 +11,7 @@ program.command("download")
   .action(async (args : {world : string})=> {
     const spinner = ora()
     const project = args.world == "gs" ? Project.GemstoneTemporary : Project.DragonrealmsTemporary
-    spinner.start(`downloading ${project.remoteMap} to ${project.map()}`)
+    spinner.start(`downloading ${project.remoteMap} to ${project.map}`)
     try {
       const {mb, location} = await Tasks.download({project})
       spinner.succeed(`mapdb of ${mb}mb successfully downloaded to ${location}`)
@@ -29,7 +29,7 @@ program.command("validate")
     const project = args.world == "gs" ? Project.GemstoneTemporary : Project.DragonrealmsTemporary
     const then = performance.now()
     const spinner = ora()
-    spinner.start(`validating mapdb at ${project.map()}...`)
+    spinner.start(`validating mapdb at ${project.map}...`)
     const {rooms, errors} = await Tasks.validate({project})
     const runtime = Math.round(performance.now() - then)
 
@@ -39,7 +39,7 @@ program.command("validate")
     }
     spinner.clear()
     console.table(errors)
-    spinner.fail(`[${runtime}ms] found ${errors.length} issues in ${project.map()}`)
+    spinner.fail(`[${runtime}ms] found ${errors.length} issues in ${project.map}`)
 
     process.exit(1)
   })

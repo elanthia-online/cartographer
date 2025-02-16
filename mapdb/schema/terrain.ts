@@ -20,6 +20,4 @@ export const TerrainSchema = z.enum([
     "subterranean",
     "tropical",
     "icy glacier",
-]);
-export type Terrain = z.infer<typeof TerrainSchema>;
-
+])

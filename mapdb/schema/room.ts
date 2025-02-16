@@ -30,6 +30,3 @@ export const RoomSchema = z.object({
     "check_location": z.union([z.boolean(), z.null()]).optional(),
     "unique_loot": z.union([z.array(z.string()), z.null()]).optional(),
 })
-export type Room = z.infer<typeof RoomSchema>
-
-export const RoomList = z.array(RoomSchema)

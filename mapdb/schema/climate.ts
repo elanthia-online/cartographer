@@ -15,4 +15,3 @@ export const ClimateSchema = z.enum([
     "snowy, arctic",
     "temperate",
 ])
-export type Climate = z.infer<typeof ClimateSchema>

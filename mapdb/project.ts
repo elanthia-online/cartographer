@@ -10,6 +10,11 @@ export const KNOWN_MAPS = {
   DR: "https://raw.githubusercontent.com/FarFigNewGut/lich_repo_mirror/refs/heads/main/dr_map/dr_map.json",
 }
 
+export enum Mode {
+  Production,
+  Develop
+}
+
 export interface ProjectConfig {
   rootDir : string,
   world : World
@@ -21,11 +26,13 @@ export class Project {
   readonly rootDir : string;
   readonly world : string;
   readonly remoteMap : string;
+  readonly mode : Mode;
   constructor (config : ProjectConfig) {
     this.rootDir = config.rootDir
     this.world   = config.world
     this.remoteMap = config.world == World.Dragonrealms ? KNOWN_MAPS.DR : KNOWN_MAPS.GS
     this.context = path.join(this.rootDir, this.world)
+    this.mode = process.env.NODE_ENV == "production" ? Mode.Production : Mode.Develop
   }
 
   async mkdirSafely (p : string) {
@@ -38,11 +45,20 @@ export class Project {
     }
   }
 
+  get roomsDir () {
+    switch (this.mode) {
+      case Mode.Production:
+        return path.join(process.cwd(), "rooms")
+      case Mode.Develop:
+        return this.asset("rooms")
+    }
+  }
+
   asset (file : string) {
     return path.join(this.context, file)
   }
 
-  map () {
+  get map () {
     return this.asset(Project.Map)
   }
 
@@ -63,6 +79,7 @@ export class Project {
   async setup () {
     await this.mkdirSafely(this.rootDir)
     await this.mkdirSafely(this.context)
+    await this.mkdirSafely(this.roomsDir)
   }
 
   async write (file : string, data : string) {
