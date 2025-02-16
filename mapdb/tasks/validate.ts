@@ -1,15 +1,14 @@
-import * as Project from "../project"
+import {Project} from "../project"
 import { RoomSchema } from "../schema/room"
 import * as _ from "underscore"
 import { fromError } from 'zod-validation-error'
 
-
-export async function load (file : string) : Promise<Array<{id: string}>> {
-  return await Project.readJSON(file)
+export interface ValidateConfig {
+  project: Project;
 }
 
-export async function validate (file : string) {
-  const rooms = await load(file)
+export async function validate (config : ValidateConfig) {
+  const rooms = await config.project.readMap()
   const errors = [] as Record<string, string>[]
   const validated = [] as Array<ReturnType<typeof RoomSchema.parse>>
   for (const room of rooms) {

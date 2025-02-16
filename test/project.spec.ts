@@ -1,6 +1,7 @@
-import { expect, test } from "bun:test";
-import * as Project from "../mapdb/project"
+import { test } from "bun:test"
+import {GemstoneTemporary, DragonrealmsTemporary} from "../mapdb/project"
 
 test("project can be initialized", async ()=> {
-  await Project.setup()
+  await GemstoneTemporary.setup()
+  await DragonrealmsTemporary.setup()
 })

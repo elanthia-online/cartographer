@@ -6,14 +6,14 @@ import * as Project from "./project"
 
 program.command("download")
   .alias("dl")
-  .option("--url <url>", "the url to download a mapdb json file from", "https://github.com/FarFigNewGut/lich_repo_mirror/raw/main/gs_map/gs_map.json")
-  .option("--to <file>", "the file to download the mapdb to", "gemstone.json")
+  .option("--world <world>", "the url to download a mapdb json file from", "gs")
   .description("download a mapdb json file to your local tmp dir")
-  .action(async (args)=> {
+  .action(async (args : {world : string})=> {
     const spinner = ora()
-    spinner.start(`downloading ${args.url} to ${Project.asset(args.to)}`)
+    const project = args.world == "gs" ? Project.GemstoneTemporary : Project.DragonrealmsTemporary
+    spinner.start(`downloading ${project.remoteMap} to ${project.map()}`)
     try {
-      const {mb, location} = await Tasks.download({url: args.url, to: args.to})
+      const {mb, location} = await Tasks.download({project})
       spinner.succeed(`mapdb of ${mb}mb successfully downloaded to ${location}`)
     } catch (err : any) {
       spinner.fail(err.message)
@@ -24,13 +24,13 @@ program.command("download")
 program.command("validate")
   .alias("v")
   .description("validate a mapdb in the local tmp dir")
-  .option("--file <file>", "the local database to validate")
-  .action(async args => {
-    const db = Project.asset(args.file)
+  .option("--world <world>", "the world to use as a context", "gs")
+  .action(async (args : {world: string}) => {
+    const project = args.world == "gs" ? Project.GemstoneTemporary : Project.DragonrealmsTemporary
     const then = performance.now()
     const spinner = ora()
-    spinner.start(`validating mapdb at ${db}...`)
-    const {rooms, errors} = await Tasks.validate(args.file)
+    spinner.start(`validating mapdb at ${project.map()}...`)
+    const {rooms, errors} = await Tasks.validate({project})
     const runtime = Math.round(performance.now() - then)
 
     if (errors.length == 0) {
@@ -39,7 +39,7 @@ program.command("validate")
     }
     spinner.clear()
     console.table(errors)
-    spinner.fail(`[${runtime}ms] found ${errors.length} issues in ${db}`)
+    spinner.fail(`[${runtime}ms] found ${errors.length} issues in ${project.map()}`)
 
     process.exit(1)
   })

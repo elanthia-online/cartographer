@@ -1,24 +1,15 @@
-import ora from "ora"
-import * as Project from "../project"
+import {Project} from "../project"
 
-export const KnownMaps = {
-  GS: "https://github.com/FarFigNewGut/lich_repo_mirror/raw/main/gs_map/gs_map.json",
-  DR: "https://raw.githubusercontent.com/FarFigNewGut/lich_repo_mirror/refs/heads/main/dr_map/dr_map.json",
+type DownloadConfig = {
+  project : Project
 }
 
-
-type DownloadOpts = {
-  url : string;
-  to  : string,
-}
-
-export async function download (opts : DownloadOpts) {
-  await Project.setup()
-  const db = await fetch(opts.url)
+export async function download (config : DownloadConfig) {
+  const db = await fetch(config.project.remoteMap)
   if (!db.ok) {
-    throw new Error(`error fetching > status=${db.statusText} ${opts.url}`)
+    throw new Error(`error fetching > status=${db.statusText} ${config.project.remoteMap}`)
   }
-  const {location, write, stats} = await Project.write(opts.to, await db.text())
+  const {location, write, stats} = await config.project.write(Project.Map, await db.text())
   const mb = (stats.size / Math.pow(2, 20)).toFixed(2)
-  return {url: opts.url, mb, location}
+  return {url: config.project.remoteMap, mb, location}
 }
