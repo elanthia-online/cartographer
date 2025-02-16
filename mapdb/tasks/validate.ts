@@ -21,17 +21,7 @@ export async function validate (file : string) {
   }
 
   spinner.fail(`found ${result.error.errors.length} errors in ${file}`)
-  const errorTable = Object.entries(result.error.flatten((issue: ZodIssue) => ({
-    path: issue.path,
-    message: issue.message,
-    errorCode: issue.code,
-  })).fieldErrors).flatMap(([room, errors])=> {
-    return errors?.map(err => {
-      const humanized = {room, path: err.path.join("."), message: err.message}
-      return humanized
-    })
-  })
-
+  const errorTable = Object.fromEntries(result.error.errors.map(err => [err.path.join("."), err.message]))
   console.table(errorTable)
   throw new Error(`${file} is invalid`)
 }
