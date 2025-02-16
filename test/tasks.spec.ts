@@ -1,14 +1,13 @@
 import { expect, test } from "bun:test"
 import * as Tasks from "../mapdb/tasks"
-import { KnownMaps } from "../mapdb/tasks/download"
 import { DragonrealmsTemporary, GemstoneTemporary } from "../mapdb/project"
 
 test("tasks can download gemstone mapdb from ffng repo", async ()=> {
-  await Tasks.download({project: GemstoneTemporary, url: KnownMaps.GS})
+  await Tasks.download({project: GemstoneTemporary})
 })
 
 test("tasks can download dragonrealms mapdb from ffng repo", async ()=> {
-  await Tasks.download({project: DragonrealmsTemporary, url: KnownMaps.DR})
+  await Tasks.download({project: DragonrealmsTemporary})
 })
 
 test("tasks can validate gemstone mapdb json file", async ()=> {
