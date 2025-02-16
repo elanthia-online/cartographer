@@ -13,6 +13,11 @@ export const PathsSchema = z.union([
     //z.string(),
 ]).optional()
 
+export const BackendIdSchema = z.union([
+    z.array(z.number()),
+    z.null()
+]).optional()
+
 export const RoomSchema = z.object({
     "id": z.number(),
     "title": z.union([z.array(z.string()), z.null()]).optional(),
@@ -24,7 +29,7 @@ export const RoomSchema = z.object({
     "wayto": z.record(z.string(), z.string()),
     "timeto": TimetoSchema,
     "tags": z.union([z.array(z.string()), z.null()]).optional(),
-    "uid": z.union([z.array(z.number()), z.null()]).optional(),
+    "uid": BackendIdSchema,
     "image": z.union([z.null(), z.string()]).optional(),
     "image_coords": z.union([z.array(z.number()), z.null()]).optional(),
     "check_location": z.union([z.boolean(), z.null()]).optional(),
