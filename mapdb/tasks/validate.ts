@@ -1,25 +1,37 @@
 import * as Project from "../project"
-import fs from "fs/promises"
-import { download } from "./download"
 import { RoomList } from "../schema/room"
 import ora from "ora"
-const MAPDB_FILE = "mapdb.json"
-const MAPDB_FILE_ABSOLUTE = Project.asset(MAPDB_FILE)
+import type { ZodIssue } from "zod"
 
-export async function isDownloaded () {
-  return fs.exists(MAPDB_FILE_ABSOLUTE)
+
+export async function load (file : string) : Promise<Array<{id: string}>> {
+  return await Project.readJSON(file)
 }
 
-export async function load () : Promise<Array<{id: string}>> {
-  return await Project.readJSON(MAPDB_FILE)
-}
-
-export async function validate () {
-  if (!await isDownloaded()) await download()
+export async function validate (file : string) {
+  const db = Project.asset(file)
   const spinner = ora()
-  spinner.start("validating mapdb...")
-  const rooms = await load()
+  spinner.start(`validating mapdb at ${db}...`)
+  const rooms = await load(file)
   const then = performance.now()
-  const db =  await RoomList.parseAsync(rooms)
-  spinner.succeed(`validated ${rooms.length} rooms in ${performance.now() - then}ms`)
+  const result =  await RoomList.safeParseAsync(rooms)
+  const runtime = performance.now() - then
+  if (result.success) {
+    return spinner.succeed(`validated ${rooms.length} rooms in ${runtime}ms`)
+  }
+
+  spinner.fail(`found ${result.error.errors.length} errors in ${file}`)
+  const errorTable = Object.entries(result.error.flatten((issue: ZodIssue) => ({
+    path: issue.path,
+    message: issue.message,
+    errorCode: issue.code,
+  })).fieldErrors).flatMap(([room, errors])=> {
+    return errors?.map(err => {
+      const humanized = {room, path: err.path.join("."), message: err.message}
+      return humanized
+    })
+  })
+
+  console.table(errorTable)
+  throw new Error(`${file} is invalid`)
 }
