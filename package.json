@@ -1,6 +1,6 @@
 {
   "name": "@eol/cartograph",
-  "module": "index.ts",
+  "module": "mapdb/index.ts",
   "type": "module",
   "bin": {
     "mapdb": "./mapdb/cli.ts"

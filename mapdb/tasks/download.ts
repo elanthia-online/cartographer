@@ -13,20 +13,12 @@ type DownloadOpts = {
 }
 
 export async function download (opts : DownloadOpts) {
-  const output = Project.asset(opts.to)
-  const spinner = ora()
-  spinner.start(`downloading ${opts.url} to ${output}`)
-  try {
-    await Project.setup()
-    const db = await fetch(opts.url)
-    if (!db.ok) {
-      throw new Error(`error fetching > status=${db.statusText} ${opts.url}`)
-    }
-    const {location, write, stats} = await Project.write(opts.to, await db.text())
-    const mb = (stats.size / Math.pow(2, 20)).toFixed(2)
-    spinner.succeed(`mapdb of ${mb}mb successfully downloaded to ${location}`)
-  } catch (err : any) {
-    spinner.fail(err.message)
-    throw err
+  await Project.setup()
+  const db = await fetch(opts.url)
+  if (!db.ok) {
+    throw new Error(`error fetching > status=${db.statusText} ${opts.url}`)
   }
+  const {location, write, stats} = await Project.write(opts.to, await db.text())
+  const mb = (stats.size / Math.pow(2, 20)).toFixed(2)
+  return {url: opts.url, mb, location}
 }

@@ -14,6 +14,6 @@ test("tasks can validate gemstone mapdb json file", async ()=> {
   await Tasks.validate("gemstone.json")
 })
 
-test("tasks can validate gemstone mapdb json file", async ()=> {
+test("tasks can validate dragonrealms mapdb json file", async ()=> {
   await Tasks.validate("dragonrealms.json")
 })
