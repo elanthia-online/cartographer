@@ -1,7 +1,8 @@
 import * as Project from "../project"
-import { RoomList } from "../schema/room"
+import { RoomList, RoomSchema } from "../schema/room"
 import ora from "ora"
-import type { ZodIssue } from "zod"
+import * as _ from "underscore"
+import { fromZodIssue, type ZodError, fromError } from 'zod-validation-error'
 
 
 export async function load (file : string) : Promise<Array<{id: string}>> {
@@ -15,13 +16,22 @@ export async function validate (file : string) {
   const rooms = await load(file)
   const then = performance.now()
   const result =  await RoomList.safeParseAsync(rooms)
+  const errors = [] as Record<string, string>[]
+  for (const room of rooms) {
+    try {
+      const result = RoomSchema.parse(room)
+    } catch (err : any) {
+      const humanized = fromError(err)
+      errors.push({id: room.id, error: humanized.toString()})
+    }
+  }
   const runtime = performance.now() - then
-  if (result.success) {
-    return spinner.succeed(`validated ${rooms.length} rooms in ${runtime}ms`)
+  if (errors.length == 0) {
+    return spinner.succeed(`[${runtime}ms] validated ${rooms.length} rooms`)
   }
 
-  spinner.fail(`found ${result.error.errors.length} errors in ${file}`)
-  const errorTable = Object.fromEntries(result.error.errors.map(err => [err.path.join("."), err.message]))
-  console.table(errorTable)
+  spinner.fail(`[${runtime}ms] found ${errors.length} errors in ${file}`)
+  console.table(errors)
+
   throw new Error(`${file} is invalid`)
 }
