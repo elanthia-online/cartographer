@@ -1,7 +1,7 @@
-import { test } from "bun:test"
-import {GemstoneTemporary, DragonrealmsTemporary} from "../mapdb/project"
+import { test, expect } from "bun:test"
+import { Gemstone } from "../mapdb/project"
 
-test("project can be initialized", async ()=> {
-  await GemstoneTemporary.setup()
-  await DragonrealmsTemporary.setup()
+test("project can route correctly", async ()=> {
+  expect(Gemstone.route("/rooms/123")).toBe("/tmp/cartograph/gs/rooms/123")
+  expect(Gemstone.route("map.json")).toBe("/tmp/cartograph/gs/map.json")
 })

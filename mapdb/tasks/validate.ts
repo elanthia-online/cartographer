@@ -1,5 +1,5 @@
 import {Project} from "../project"
-import { Room } from "../room"
+import { Room } from "../room/room"
 import { fromError } from 'zod-validation-error'
 
 export interface ValidateConfig {
@@ -13,7 +13,7 @@ export interface RoomValidationError {
 }
 
 export async function validate (config : ValidateConfig) {
-  const rooms = await config.project.readMap()
+  const rooms = await config.project.read("/map.json").json()
   const errors = [] as Array<RoomValidationError>
   const validated = [] as Array<Room>
   for (const pending of rooms) {

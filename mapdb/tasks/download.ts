@@ -9,7 +9,7 @@ export async function download (config : DownloadConfig) {
   if (!db.ok) {
     throw new Error(`error fetching > status=${db.statusText} ${config.project.remoteMap}`)
   }
-  const {location, write, stats} = await config.project.write(Project.Map, await db.text())
-  const mb = (stats.size / Math.pow(2, 20)).toFixed(2)
-  return {url: config.project.remoteMap, mb, location}
+  const bytes = await config.project.write("map.json", await db.text())
+  const mb = (bytes / Math.pow(2, 20)).toFixed(2)
+  return {url: config.project.remoteMap, mb}
 }

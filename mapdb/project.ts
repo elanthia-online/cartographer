@@ -2,10 +2,11 @@ import os from "os"
 import path from "path"
 import fs from "fs/promises"
 import { World } from "./world"
+import { mkdir } from "node:fs/promises"
+import type { Room } from "./room/room"
+import type { FileSystemRouter } from "bun"
 
-const TEMP_ROOT = path.join(os.tmpdir(), "cartograph")
-
-export const KNOWN_MAPS = {
+export const Remote = {
   GS: "https://github.com/FarFigNewGut/lich_repo_mirror/raw/main/gs_map/gs_map.json",
   DR: "https://raw.githubusercontent.com/FarFigNewGut/lich_repo_mirror/refs/heads/main/dr_map/dr_map.json",
 }
@@ -16,28 +17,38 @@ export enum Mode {
 }
 
 export interface ProjectConfig {
-  rootDir : string,
   world : World
 }
 
 export class Project {
-  static Map = "map.json"
-  readonly context : string;
-  readonly rootDir : string;
-  readonly world : string;
-  readonly remoteMap : string;
-  readonly mode : Mode;
+  readonly world : string
+  readonly remoteMap : string
+  readonly mode : Mode
   constructor (config : ProjectConfig) {
-    this.rootDir = config.rootDir
-    this.world   = config.world
-    this.remoteMap = config.world == World.Dragonrealms ? KNOWN_MAPS.DR : KNOWN_MAPS.GS
-    this.context = path.join(this.rootDir, this.world)
+    this.world = config.world
+    this.remoteMap = config.world == World.Dragonrealms ? Remote.DR : Remote.GS
     this.mode = process.env.NODE_ENV == "production" ? Mode.Production : Mode.Develop
+  }
+
+  route (file : string) {
+    return path.join(os.tmpdir(), "cartograph", this.world, file)
+  }
+
+  async exists (file : string) {
+    return await fs.exists(this.route(file))
+  }
+
+  read (file : string) {
+    return Bun.file(this.route(file))
+  }
+
+  async write (file : string, contents : string) {
+    return Bun.write(this.route(file), contents)
   }
 
   async mkdirSafely (p : string) {
     try {
-      await fs.mkdir(p)
+      await mkdir(p, {recursive: true})
       return true
     } catch (err : any) {
       if (err.errno == -17) return true
@@ -45,56 +56,14 @@ export class Project {
     }
   }
 
-  get roomsDir () {
-    switch (this.mode) {
-      case Mode.Production:
-        return path.join(process.cwd(), "rooms")
-      case Mode.Develop:
-        return this.asset("rooms")
-    }
-  }
-
-  asset (file : string) {
-    return path.join(this.context, file)
-  }
-
-  get map () {
-    return this.asset(Project.Map)
-  }
-
-  async readJSON (file : string) {
-    const projectFile = this.asset(file)
-    const buffer = await fs.readFile(projectFile)
-    return JSON.parse(buffer.toString())
-  }
-
-  async readMap () {
-    return this.readJSON(Project.Map)
-  }
-
-  async writeMap (data : string) {
-    return this.write(Project.Map, data)
-  }
-
   async setup () {
-    await this.mkdirSafely(this.rootDir)
-    await this.mkdirSafely(this.context)
-    await this.mkdirSafely(this.roomsDir)
-  }
-
-  async write (file : string, data : string) {
-    await this.setup()
-    const location = this.asset(file)
-    const write = await fs.writeFile(location, data)
-    return {location, write, stats: await fs.stat(location)}
+    await this.mkdirSafely(this.route("/rooms"))
   }
 }
 
-export const GemstoneTemporary = new Project({
-  rootDir: TEMP_ROOT,
+export const Gemstone = new Project({
   world: World.Gemstone
 })
-export const DragonrealmsTemporary = new Project({
-  rootDir: TEMP_ROOT,
+export const Dragonrealms = new Project({
   world: World.Dragonrealms
 })
