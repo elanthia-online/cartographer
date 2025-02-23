@@ -54,7 +54,12 @@ program.command("validate")
       spinner.start(`seeding git version at mapdb at ${project.route("/map.json")}...`)
       const operations = await Tasks.git({project})
       const runtime = Math.round(performance.now() - then)
-      spinner.succeed(`[${runtime}ms] created=${operations.created} skipped=${operations.skipped} updated=${operations.updated} errored=${operations.errored}`)
+      spinner.succeed(`[${runtime}ms] created=${operations.created} skipped=${operations.skipped} updated=${operations.updated} errors=${operations.errors.length}`)
+      if (operations.errors.length) {
+        operations.errors.forEach(({err, file})=> {
+          console.log(err)
+        })
+      }
       process.exit(0)
     })
 

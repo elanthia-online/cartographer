@@ -3,6 +3,13 @@ import { State, type GitRoom, type Room } from "../room/room";
 import { download } from "./download";
 import { validate } from "./validate"
 
+type Operations = {
+  updated: number;
+  skipped:number;
+  created:number;
+  errors: Array<{err: string, file: string}>;
+}
+
 export interface SeedConfig {
   project: Project;
 }
@@ -15,26 +22,28 @@ export async function git (config : SeedConfig) {
   const {errors, rooms} = await validate(config)
   const operations = {
     valid: rooms.length,
-    errored: errors.length,
+    errors: [],
     updated: 0,
     skipped: 0,
     created: 0,
-  }
+  } as Operations
 
-  for (const room of rooms.slice(0,3)) {
+  for (const room of rooms) {
     await upsert(room, config.project, operations)
   }
 
   return operations
 }
 
-async function upsert (room : Room, project : Project, operations : {updated: number, skipped:number, created:number}) {
+async function upsert (room : Room, project : Project, operations : Operations) {
   switch (await room.getState(project)) {
     case State.Missing:
-      await room.write(project)
+      const create = await room.write(project)
+      operations.errors.push(...create.errors)
       return operations.created++
     case State.Stale:
-      await room.write(project)
+      const update = await room.write(project)
+      operations.errors.push(...update.errors)
       return operations.updated++
     case State.Ok:
       return operations.skipped++

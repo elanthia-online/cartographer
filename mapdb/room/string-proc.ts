@@ -52,10 +52,13 @@ export class StringProc {
   async format (project : Project) {
     await project.mkdirSafely(project.route(path.dirname(this.location)))
     await project.write(this.location, this.ruby)
-    try {
-      const process = await $`standardrb --fix-unsafely ${project.route(this.location)}`
-    } catch (err) {
-      console.error(err)
-    }
+
+    const process = $`standardrb --fix-unsafely ${project.route(this.location)}`
+    process.quiet()
+    process.nothrow()
+    const result = await process
+
+    if (result.stdout.length) return {err: result.stdout.toString().replaceAll("../", ""), file: this.location}
+    return {ok: true}
   }
 }

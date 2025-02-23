@@ -64,8 +64,11 @@ export class Room {
 
   async write (project : Project) {
     await project.write(this.file, this.toString())
+    const errors = []
     for (const proc of this.stringprocs) {
-      await proc.format(project)
+      const result = await proc.format(project)
+      if (result.err) errors.push(result)
     }
+  return {errors}
   }
 }
