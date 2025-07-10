@@ -58,6 +58,7 @@ export class StringProc {
     process.nothrow()
     const result = await process
 
+
     if (result.stdout.length) return {err: result.stdout.toString().replaceAll("../", ""), file: this.location}
     return {ok: true}
   }
