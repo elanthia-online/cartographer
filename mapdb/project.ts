@@ -29,24 +29,27 @@ export enum Mode {
  */
 export interface ProjectConfig {
   world: World
+  outputDir?: string
 }
 
 /**
  * Project class for managing game world data and file operations
  */
 export class Project {
-  readonly world: string
+  readonly world: World
   readonly remoteMap: string
   readonly mode: Mode
+  readonly outputDir?: string
 
   /**
    * Creates a new Project instance
-   * @param config - Project configuration containing the world type
+   * @param config - Project configuration containing the world type and optional output directory
    */
   constructor(config: ProjectConfig) {
     this.world = config.world
-    this.remoteMap = config.world == World.Dragonrealms ? Remote.DR : Remote.GS
+    this.remoteMap = config.world == "dr" ? Remote.DR : Remote.GS
     this.mode = process.env.NODE_ENV == "production" ? Mode.Production : Mode.Develop
+    this.outputDir = config.outputDir
   }
 
   /**
@@ -59,12 +62,33 @@ export class Project {
   }
 
   /**
+   * Generates a file path within the project's output directory (for git-compatible files)
+   * @param file - Relative file path
+   * @returns Absolute path to the file in output directory
+   */
+  gitRoute(file: string) {
+    if (this.outputDir) {
+      return path.join(this.outputDir, file)
+    }
+    return this.route(file)
+  }
+
+  /**
    * Checks if a file exists in the project directory
    * @param file - Relative file path
    * @returns Promise resolving to boolean indicating file existence
    */
   async exists(file: string) {
     return await fs.exists(this.route(file))
+  }
+
+  /**
+   * Checks if a file exists in the git output directory
+   * @param file - Relative file path
+   * @returns Promise resolving to boolean indicating file existence
+   */
+  async gitExists(file: string) {
+    return await fs.exists(this.gitRoute(file))
   }
 
   /**
@@ -77,6 +101,15 @@ export class Project {
   }
 
   /**
+   * Creates a file reader for the specified file in git output directory
+   * @param file - Relative file path
+   * @returns Bun.File instance for reading
+   */
+  gitRead(file: string) {
+    return Bun.file(this.gitRoute(file))
+  }
+
+  /**
    * Writes content to a file in the project directory
    * @param file - Relative file path
    * @param contents - String content to write
@@ -84,6 +117,16 @@ export class Project {
    */
   async write(file: string, contents: string) {
     return Bun.write(this.route(file), contents)
+  }
+
+  /**
+   * Writes content to a file in the git output directory
+   * @param file - Relative file path
+   * @param contents - String content to write
+   * @returns Promise resolving when write is complete
+   */
+  async gitWrite(file: string, contents: string) {
+    return Bun.write(this.gitRoute(file), contents)
   }
 
   /**
@@ -108,18 +151,26 @@ export class Project {
   async setup() {
     await this.mkdirSafely(this.route("/rooms"))
   }
+
+  /**
+   * Sets up git output directory structure
+   * @returns Promise resolving when setup is complete
+   */
+  async gitSetup() {
+    await this.mkdirSafely(this.gitRoute("/rooms"))
+  }
 }
 
 /**
  * Pre-configured Project instance for Gemstone world
  */
 export const Gemstone = new Project({
-  world: World.Gemstone
+  world: "gs"
 })
 
 /**
  * Pre-configured Project instance for Dragonrealms world
  */
 export const Dragonrealms = new Project({
-  world: World.Dragonrealms
+  world: "dr"
 })

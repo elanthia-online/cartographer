@@ -2,7 +2,7 @@ import stringify from "safe-stable-stringify"
 import * as fs from "node:fs/promises"
 import crypto from "crypto"
 import { RoomValidator } from "../validators/room"
-import { StringProc } from "./string-proc"
+import { StringProc, StringProcBatch } from "./string-proc"
 import type { Project } from "../project"
 
 export enum State {
@@ -66,12 +66,12 @@ export class Room {
    */
   async getState (project: Project) : Promise<State> {
     if (this._state) return this._state
-    const exists = await project.exists(this.file)
+    const exists = await project.gitExists(this.file)
     if (!exists) {
       this._state = State.Missing
       return this._state
     }
-    const disk = await project.read(this.file).json() as GitRoom
+    const disk = await project.gitRead(this.file).json() as GitRoom
     this._state = disk.checksum == this.checksum
       ? State.Ok
       : State.Stale
@@ -95,17 +95,26 @@ export class Room {
   }
 
   /**
-   * Writes the room to disk and processes any string formatting
+   * Writes the room to disk and queues string procedures for batch processing
    * @param project The project context
    * @returns Object containing any formatting errors
    */
   async write (project : Project) {
-    await project.write(this.file, this.toString())
-    const errors = []
+    await project.gitWrite(this.file, this.toString())
+    // Queue string procedures for batch processing
     for (const proc of this.stringprocs) {
-      const result = await proc.format(project)
-      if (result.err) errors.push(result)
+      await proc.format(project)
     }
-    return {errors}
+    return {errors: []}
+  }
+
+  /**
+   * Static method to process all queued string procedures in batch
+   * @param project The project context
+   * @param onProgress Optional progress callback
+   * @returns Array of errors from batch processing
+   */
+  static async processBatchedStringProcs(project: Project, onProgress?: (current: number, total: number, batchNum: number, totalBatches: number) => void) {
+    return await StringProcBatch.getInstance().processBatch(project, onProgress)
   }
 }
