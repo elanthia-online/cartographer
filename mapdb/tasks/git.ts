@@ -1,6 +1,6 @@
 import type { Ora } from "ora";
 import {type Project} from "../project"
-import { State, type GitRoom, type Room } from "../room/room";
+import { State, Room } from "../room/room";
 import { download } from "./download";
 import { validate } from "./validate"
 
@@ -40,6 +40,11 @@ export async function git (config : SeedConfig) {
     await download(config)
   }
 
+  // Set up git output directory if specified
+  if (config.project.outputDir) {
+    await config.project.gitSetup()
+  }
+
   const {errors: validationErrors, rooms} = await validate(config)
   const operations: Operations = {
     updated: 0,
@@ -56,6 +61,17 @@ export async function git (config : SeedConfig) {
     const progress = operations.updated + operations.skipped + operations.created + operations.errors.length
     config.spinner.text = `completed room ${progress} of ${rooms.length} {errors=${operations.errors.length}, skipped=${operations.skipped}, created=${operations.created}} [${Math.round((progress/rooms.length) * 100)}%]`
   }
+  // Process all queued string procedures in batch
+  const batchErrors = await Room.processBatchedStringProcs(config.project, (current, total, batchNum, totalBatches) => {
+    if (totalBatches === 1) {
+      const percentage = Math.round((current / total) * 100)
+      config.spinner.text = `Processing ${total} Ruby string procedures... [${percentage}%]`
+    } else {
+      const percentage = Math.round((current / total) * 100)
+      config.spinner.text = `Processing Ruby string procedures (batch ${batchNum}/${totalBatches}) - ${current}/${total} files [${percentage}%]`
+    }
+  })
+  operations.errors.push(...batchErrors)
 
   return operations
 }
@@ -70,12 +86,10 @@ export async function git (config : SeedConfig) {
 async function upsert (room : Room, project : Project, operations : Operations) {
   switch (await room.getState(project)) {
     case State.Missing:
-      const create = await room.write(project)
-      operations.errors.push(...create.errors)
+      await room.write(project)
       return operations.created++
     case State.Stale:
-      const update = await room.write(project)
-      operations.errors.push(...update.errors)
+      await room.write(project)
       return operations.updated++
     case State.Ok:
       return operations.skipped++

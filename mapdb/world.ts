@@ -1,4 +1,3 @@
-export enum World {
-  Gemstone = "gs",
-  Dragonrealms = "dr",
-}
+export type World =
+  | "gs"
+  | "dr"
