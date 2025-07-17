@@ -50,14 +50,14 @@ program.command("validate")
     .option("-o, --output <dir>", "output directory for git-compatible files")
     .action(async (args: {dr: boolean, output?: string})=> {
       const baseProject = args.dr ? Project.Dragonrealms : Project.Gemstone
-      const project = args.output ? 
-        new Project.Project({world: baseProject.world, outputDir: args.output}) : 
+      const project = args.output ?
+        new Project.Project({world: baseProject.world, outputDir: args.output}) :
         baseProject
-      
+
       if (args.output) {
         await project.gitSetup()
       }
-      
+
       const then = performance.now()
       const spinner = ora()
       const outputLocation = args.output || project.route("/")
@@ -81,12 +81,12 @@ program.command("reconstruct")
   .option("-o, --output <file>", "output file path for reconstructed mapdb.json")
   .action(async (args: {dr: boolean, input?: string, output?: string})=> {
     const baseProject = args.dr ? Project.Dragonrealms : Project.Gemstone
-    
+
     if (!args.input) {
       console.error("Error: --input directory is required")
       process.exit(1)
     }
-    
+
     if (!args.output) {
       console.error("Error: --output file path is required")
       process.exit(1)
@@ -95,7 +95,7 @@ program.command("reconstruct")
     const project = new Project.Project({world: baseProject.world})
     const then = performance.now()
     const spinner = ora()
-    
+
     try {
       spinner.start(`reconstructing mapdb from ${args.input}...`)
       const results = await Tasks.reconstruct({
@@ -104,9 +104,9 @@ program.command("reconstruct")
         gitDir: args.input,
         outputFile: args.output
       })
-      
+
       const runtime = Math.round(performance.now() - then)
-      
+
       if (results.errors.length === 0) {
         spinner.succeed(`[${runtime}ms] reconstructed ${results.roomsProcessed} rooms to ${args.output}`)
         process.exit(0)
