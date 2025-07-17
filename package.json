@@ -1,8 +1,10 @@
 {
   "name": "@elanthia/cartograph",
   "module": "mapdb/index.ts",
-  "version": "0.1.0",
-  "files": ["mapdb/**/*"],
+  "version": "0.2.0",
+  "files": [
+    "mapdb/**/*"
+  ],
   "type": "module",
   "scripts": {
     "compile": "bun build --compile ./mapdb/mapdb.ts --outfile=dist/mapdb"
