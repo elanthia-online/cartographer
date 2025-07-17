@@ -23,7 +23,7 @@ jobs:
           # (PAT) and configured it as a GitHub action secret named
           # `MY_RELEASE_PLEASE_TOKEN` (this secret name is not important).
           token: ${{ secrets.GITHUB_TOKEN }}
-          config-file: release-please-config.json
+          config-file: config/release-please.json
   zip-and-upload:
     if: needs.release-please.outputs.release_created == 'true'
     needs: release-please
