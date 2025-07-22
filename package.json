@@ -1,5 +1,5 @@
 {
-  "name": "@elanthia/cartograph",
+  "name": "@elanthia/cartographer",
   "module": "mapdb/index.ts",
   "version": "0.1.0",
   "files": ["mapdb/**/*"],
