@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/elanthia-online/cartographer/compare/v0.3.1...v0.4.0) (2025-07-22)
+
+
+### Features
+
+* add validate-files command for PR validation ([#6](https://github.com/elanthia-online/cartographer/issues/6)) ([82e6637](https://github.com/elanthia-online/cartographer/commit/82e663755752ef3b180981243b9fe1b7fd153ef7))
+
 ## [0.3.1](https://github.com/elanthia-online/cartographer/compare/v0.3.0...v0.3.1) (2025-07-22)
 
 
