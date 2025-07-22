@@ -73,6 +73,42 @@ program.command("validate")
       process.exit(0)
     })
 
+program.command("validate-files")
+  .alias("vf")
+  .description("validate specific room files")
+  .option("--dr", "run in dragonrealms mode", false)
+  .option("--json", "output errors in JSON format", false)
+  .argument("<files...>", "room.json file paths to validate")
+  .action(async (files: string[], args: {dr: boolean, json: boolean}) => {
+    const then = performance.now()
+    const spinner = ora()
+    
+    spinner.start(`validating ${files.length} room files...`)
+    
+    try {
+      const results = await Tasks.validateFiles({files, json: args.json})
+      const runtime = Math.round(performance.now() - then)
+      
+      if (results.errors.length === 0) {
+        spinner.succeed(`[${runtime}ms] validated ${results.validFiles} files`)
+        process.exit(0)
+      } else {
+        spinner.fail(`[${runtime}ms] found ${results.errors.length} validation errors`)
+        
+        if (args.json) {
+          console.log(JSON.stringify(results, null, 2))
+        } else {
+          console.table(results.errors)
+        }
+        process.exit(1)
+      }
+    } catch (error: any) {
+      const runtime = Math.round(performance.now() - then)
+      spinner.fail(`[${runtime}ms] ${error.message}`)
+      process.exit(1)
+    }
+  })
+
 program.command("reconstruct")
   .alias("r")
   .description("reconstruct a mapdb.json file from git directory structure")
