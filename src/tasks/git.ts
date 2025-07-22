@@ -2,7 +2,7 @@ import type { Ora } from "ora";
 import {type Project} from "../project"
 import { State, Room } from "../room/room";
 import { download } from "./download";
-import { validate } from "./validate"
+import { validateMapdb } from "./validate-mapdb"
 
 /**
  * Tracks the results of git operations performed on rooms
@@ -45,7 +45,7 @@ export async function git (config : SeedConfig) {
     await config.project.gitSetup()
   }
 
-  const {errors: validationErrors, rooms} = await validate(config)
+  const {errors: validationErrors, rooms} = await validateMapdb({filePath: config.project.route("/map.json")})
   const operations: Operations = {
     updated: 0,
     skipped: 0,

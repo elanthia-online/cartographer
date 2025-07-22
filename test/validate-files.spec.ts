@@ -1,5 +1,5 @@
 import { expect, test, beforeAll, afterAll } from "bun:test"
-import * as Tasks from "../mapdb/tasks"
+import * as Tasks from "../src/tasks"
 import * as fs from "node:fs/promises"
 import * as path from "path"
 

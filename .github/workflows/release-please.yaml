@@ -50,4 +50,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ needs.release-please.outputs.tag_name }} dist/mapdb --clobber
+          gh release upload ${{ needs.release-please.outputs.tag_name }} dist/cartographer --clobber

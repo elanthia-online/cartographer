@@ -1,10 +1,10 @@
 import { expect, test, beforeAll, afterAll } from "bun:test"
-import * as Tasks from "../mapdb/tasks"
-import { Dragonrealms, Gemstone, Project } from "../mapdb/project"
+import * as Tasks from "../src/tasks"
+import { Dragonrealms, Gemstone, Project } from "../src/project"
 import * as fs from "node:fs/promises"
 import * as path from "path"
 import ora from "ora"
-import type { Room, ValidRoom } from "../mapdb/room/room"
+import type { Room, ValidRoom } from "../src/room/room"
 
 test("tasks can download gemstone mapdb from ffng repo", async ()=> {
   await Tasks.download({project: Gemstone})
@@ -15,11 +15,11 @@ test("tasks can download dragonrealms mapdb from ffng repo", async ()=> {
 })
 
 test("tasks can validate gemstone mapdb json file", async ()=> {
-  await Tasks.validate({project: Gemstone})
+  await Tasks.validateMapdb({filePath: Gemstone.route("/map.json")})
 })
 
 test("tasks can validate dragonrealms mapdb json file", async ()=> {
-  await Tasks.validate({project: Dragonrealms})
+  await Tasks.validateMapdb({filePath: Dragonrealms.route("/map.json")})
 })
 
 test("tasks can reconstruct mapdb from git directory", async () => {
