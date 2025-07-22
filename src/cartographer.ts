@@ -3,6 +3,11 @@ import ora from "ora"
 import { program } from "commander"
 import * as Tasks from "./tasks"
 import * as Project from "./project"
+import packageJson from "../package.json"
+
+program
+  .name("cartographer")
+  .version(packageJson.version)
 
 program.command("download")
   .alias("dl")
@@ -23,24 +28,29 @@ program.command("download")
 
 program.command("validate")
   .alias("v")
-  .description("validate a mapdb in the local tmp dir")
+  .description("validate a mapdb file")
   .option("--dr", "run in dragonrealms mode", false)
-  .action(async (args: {dr: boolean})=> {
-    const project = args.dr ? Project.Dragonrealms : Project.Gemstone
+  .option("-i, --input <file>", "input mapdb.json file path")
+  .action(async (args: {dr: boolean, input?: string})=> {
+    const baseProject = args.dr ? Project.Dragonrealms : Project.Gemstone
     const then = performance.now()
     const spinner = ora()
-    spinner.start(`validating mapdb at ${project.route("/map.json")}...`)
-    const {rooms, errors} = await Tasks.validate({project})
+    
+    // Use input file or default to tmp directory path
+    const filePath = args.input || baseProject.route("/map.json")
+    
+    spinner.start(`validating mapdb at ${filePath}...`)
+    const {rooms, errors} = await Tasks.validateMapdb({filePath})
     const runtime = Math.round(performance.now() - then)
 
     if (errors.length == 0) {
       spinner.succeed(`[${runtime}ms] validated ${rooms.length} rooms`)
       return process.exit(0)
     }
+    
     spinner.clear()
     console.table(errors)
     spinner.fail(`[${runtime}ms] found ${errors.length} issues`)
-
     process.exit(1)
   })
 

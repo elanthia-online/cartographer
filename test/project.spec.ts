@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test"
-import { Gemstone } from "../mapdb/project"
+import { Gemstone } from "../src/project"
 
 test("project can route correctly", async ()=> {
   expect(Gemstone.route("/rooms/123")).toBe("/tmp/cartograph/gs/rooms/123")
