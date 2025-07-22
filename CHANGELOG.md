@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/elanthia-online/cartographer/compare/v0.2.0...v0.3.0) (2025-07-22)
+
+
+### Features
+
+* add npm publishing to release workflow ([#3](https://github.com/elanthia-online/cartographer/issues/3)) ([daa47a5](https://github.com/elanthia-online/cartographer/commit/daa47a5d3bde65bccdc969b1752f09e3f883d808))
+
 ## [0.2.0](https://github.com/elanthia-online/cartographer/compare/v0.1.0...v0.2.0) (2025-07-17)
 
 
