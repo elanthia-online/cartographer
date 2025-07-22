@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/elanthia-online/cartographer/compare/v0.3.0...v0.3.1) (2025-07-22)
+
+
+### Bug Fixes
+
+* use NPM_CONFIG_TOKEN for npm auth; ([870a512](https://github.com/elanthia-online/cartographer/commit/870a512fa993e2ff961fe13ca39c52f245020b8d))
+
 ## [0.3.0](https://github.com/elanthia-online/cartographer/compare/v0.2.0...v0.3.0) (2025-07-22)
 
 
