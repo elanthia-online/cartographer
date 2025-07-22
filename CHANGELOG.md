@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/elanthia-online/cartographer/compare/v0.4.0...v0.5.0) (2025-07-22)
+
+
+### Features
+
+* add validate --input option and refactor project structure ([#8](https://github.com/elanthia-online/cartographer/issues/8)) ([5472846](https://github.com/elanthia-online/cartographer/commit/5472846802fc1f533bac3c967a221aa95dcea823))
+
 ## [0.4.0](https://github.com/elanthia-online/cartographer/compare/v0.3.1...v0.4.0) (2025-07-22)
 
 
