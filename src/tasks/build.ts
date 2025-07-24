@@ -20,6 +20,7 @@ export interface BuildConfig {
   outputFile?: string;  // Required when userland=false
   outputDir?: string;   // Required when userland=true
   userland?: boolean;
+  sourceMapdbPath?: string; // Path to source mapdb.json for StringProc recovery
 }
 
 /**
@@ -169,7 +170,7 @@ async function buildUserland(config: BuildConfig): Promise<BuildResults> {
         const gitRoom: GitRoom = JSON.parse(fileContent)
         
         // Create a Room instance in userland mode to generate Cartographer.evaluate_script() references
-        const room = new Room(gitRoom.room, true) // true = userland mode
+        const room = await Room.create(gitRoom.room, true, gitDir, config.sourceMapdbPath) // true = userland mode
         rooms.push(room.validated)
 
         // Collect StringProc files for this room

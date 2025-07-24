@@ -30,11 +30,28 @@ export class Room {
    * Validates raw room data and creates a new Room instance
    * @param data Unknown data to validate as a room
    * @param userland Whether to use userland format for cartographer compatibility
+   * @param gitDir Git directory path needed for file operations when in userland mode
+   * @param sourceMapdbPath Path to source mapdb.json for StringProc recovery
    * @returns A new validated Room instance
    */
-  static validate (data : unknown, userland = false) {
+  static async validate (data : unknown, userland = false, gitDir?: string, sourceMapdbPath?: string) {
     const validated = RoomValidator.parse(data)
-    return new Room(validated, userland)
+    return await Room.create(validated, userland, gitDir, sourceMapdbPath)
+  }
+
+  /**
+   * Creates a new Room instance from validated room data
+   * @param validated The validated room data
+   * @param userland Whether to use userland format for cartographer compatibility
+   * @param gitDir Git directory path needed for file operations when in userland mode
+   * @param sourceMapdbPath Path to source mapdb.json for StringProc recovery
+   * @returns A new Room instance
+   */
+  static async create (validated: ValidRoom, userland = false, gitDir?: string, sourceMapdbPath?: string) {
+    // Create a deep copy of the validated room to avoid modifying the original
+    const roomCopy = JSON.parse(JSON.stringify(validated))
+    const stringprocs = await StringProc.transform(roomCopy, userland, gitDir, sourceMapdbPath)
+    return new Room(roomCopy, stringprocs, userland)
   }
 
   /** Stringified version of the validated room data */
@@ -43,8 +60,6 @@ export class Room {
   readonly checksum: string;
   /** File path where this room is stored */
   readonly file: string;
-  /** Collection of string processors for this room */
-  readonly stringprocs: StringProc[]
 
   /** Current state of the room (Missing, Stale, or Ok) */
   _state? : State
@@ -52,13 +67,13 @@ export class Room {
   /**
    * Creates a new Room instance from validated room data
    * @param validated The validated room data
+   * @param stringprocs Pre-processed string procedures
    * @param userland Whether to use userland format for cartographer compatibility
    */
-  constructor (readonly validated : ValidRoom, userland = false) {
+  constructor (readonly validated : ValidRoom, readonly stringprocs: StringProc[], userland = false) {
     this.input = stringify(this.validated)
     this.checksum = crypto.createHash("md5").update(this.input).digest("hex")
     this.file = `/rooms/${this.validated.id}/room.json`
-    this.stringprocs = StringProc.transform(validated, userland)
   }
 
   /**
@@ -74,9 +89,23 @@ export class Room {
       return this._state
     }
     const disk = await project.gitRead(this.file).json() as GitRoom
-    this._state = disk.checksum == this.checksum
-      ? State.Ok
-      : State.Stale
+    
+    // Check if checksums match
+    if (disk.checksum !== this.checksum) {
+      this._state = State.Stale
+      return this._state
+    }
+    
+    // Even if checksums match, check if all referenced stringproc files exist
+    for (const proc of this.stringprocs) {
+      const procExists = await project.gitExists(proc.location)
+      if (!procExists) {
+        this._state = State.Stale
+        return this._state
+      }
+    }
+    
+    this._state = State.Ok
     return this._state
   }
 

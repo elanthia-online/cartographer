@@ -79,3 +79,93 @@ The project aims to:
 - Validation errors use `zod-validation-error` for better error messages
 - CLI uses `commander` for argument parsing and `ora` for progress spinners
 - Testing with Bun's built-in test runner
+
+## Userland StringProc Architecture
+
+### Current Implementation (Phase 1)
+
+The cartographer now supports a "userland" build format designed for `cartographer.lic` consumption that solves dijkstra pathfinding errors caused by StringProc file path references.
+
+**Build Commands:**
+- `bun run src/cartographer.ts build --userland -i <git-dir> -o <output-dir>` - Builds userland format
+- `bun run src/cartographer.ts build -i <git-dir> -o <output-file>` - Builds standard format
+
+**Current Format (Phase 1):**
+```json
+{
+  "wayto": {
+    "200": ";e Cartographer.evaluate_script('wayto/room-100-to-200.rb')"
+  },
+  "timeto": {
+    "200": ";e Cartographer.evaluate_script('timeto/room-100-to-200.rb')"
+  }
+}
+```
+
+**Directory Structure:**
+```
+version/
+├── mapdb.json                    # With Cartographer.evaluate_script() refs
+└── stringprocs/
+    ├── wayto/
+    │   └── room-100-to-200.rb   # Unique per from-room + to-room
+    └── timeto/
+        └── room-100-to-200.rb
+```
+
+### Future Reusable StringProcs (Phase 2)
+
+**Vision for parameterized, reusable StringProcs:**
+
+**Enhanced Format (Future):**
+```json
+{
+  "wayto": {
+    "tavern": ";e Cartographer.load('common/table.rb'); Cartographer.call(:table, 'Cat\\'s Paw')"
+  }
+}
+```
+
+**Enhanced Directory Structure:**
+```
+stringprocs/
+├── wayto/
+│   ├── common/
+│   │   ├── table.rb          # Reusable table interaction logic
+│   │   ├── door.rb           # Reusable door logic  
+│   │   └── teleport.rb       # Reusable teleport logic
+│   └── specific/
+│       └── room-789-special.rb  # Room-specific unique logic
+└── timeto/
+    ├── common/
+    │   └── variable-timing.rb
+    └── specific/
+        └── room-456-complex.rb
+```
+
+**Proposed DSL in common/table.rb:**
+```ruby
+Cartographer.wayto(:table) do |table_name|
+  fput "go #{table_name} table" if /inviting you|invites you/.match?(
+    dothistimeout("go #{table_name} table", 25, /You (?:and your group )?head over to|waves.*you.*(?:invites|inviting) you(?: and your group)? to (?:join|come sit at)/)
+  )
+end
+
+Cartographer.timeto(:table) do |table_name|
+  0.2  # or complex logic based on table_name
+end
+```
+
+### Implementation Phases
+
+1. **Phase 1 (Current)**: `room-X-to-Y.rb` format for all StringProcs - maintains uniqueness
+2. **Phase 2 (Future)**: Identify common patterns through duplicate analysis
+3. **Phase 3 (Future)**: Implement parameterized DSL and migrate common patterns to `common/`
+
+### Benefits of This Architecture
+
+- ✅ **Fixes dijkstra pathfinding errors** - No more String+ exceptions
+- ✅ **Maintains uniqueness** - Each from-room + to-room combination is isolated  
+- ✅ **Enables future deduplication** - Path to reusable, parameterized StringProcs
+- ✅ **Backward compatibility** - cartographer.lic can handle both current and future formats
+- ✅ **Progressive enhancement** - Can gradually move from specific to reusable patterns

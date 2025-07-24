@@ -23,10 +23,12 @@ type Operations = {
  * Configuration for seeding room data
  * @interface SeedConfig
  * @property {Project} project - Project instance containing room configuration
+ * @property {string} inputFile - Optional input mapdb.json file path
  */
 export interface SeedConfig {
   project: Project;
   spinner: Ora;
+  inputFile?: string;
 }
 
 /**
@@ -36,7 +38,9 @@ export interface SeedConfig {
  * @returns {Promise<Operations>} Results of all operations performed
  */
 export async function git (config : SeedConfig) {
-  if (!await(config.project.exists("/map.json"))) {
+  const inputFile = config.inputFile || config.project.route("/map.json")
+  
+  if (!config.inputFile && !await(config.project.exists("/map.json"))) {
     await download(config)
   }
 
@@ -45,7 +49,9 @@ export async function git (config : SeedConfig) {
     await config.project.gitSetup()
   }
 
-  const {errors: validationErrors, rooms} = await validateMapdb({filePath: config.project.route("/map.json")})
+  const {errors: validationErrors, rooms} = await validateMapdb({
+    filePath: inputFile
+  })
   const operations: Operations = {
     updated: 0,
     skipped: 0,
@@ -84,7 +90,10 @@ export async function git (config : SeedConfig) {
  * @returns {Promise<void>}
  */
 async function upsert (room : Room, project : Project, operations : Operations) {
-  switch (await room.getState(project)) {
+  const state = await room.getState(project)
+  
+  // Only write when state requires it (Missing or Stale)
+  switch (state) {
     case State.Missing:
       await room.write(project)
       return operations.created++

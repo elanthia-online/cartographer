@@ -14,13 +14,13 @@ export interface RoomValidationError {
 
 export interface ValidateMapdbResult {
   errors: RoomValidationError[];
-  rooms: any[];
+  rooms: Room[];
 }
 
 export async function validateMapdb(config: ValidateMapdbConfig): Promise<ValidateMapdbResult> {
   const { filePath } = config
   const errors: RoomValidationError[] = []
-  const validatedRooms: any[] = []
+  const validatedRooms: Room[] = []
 
   try {
     // Read and parse the mapdb.json file
@@ -34,8 +34,8 @@ export async function validateMapdb(config: ValidateMapdbConfig): Promise<Valida
     // Validate each room in the file
     for (const pending of rooms) {
       try {
-        const validatedRoom = Room.validate(pending)
-        validatedRooms.push(validatedRoom.validated)
+        const validatedRoom = await Room.validate(pending)
+        validatedRooms.push(validatedRoom)
       } catch (err: any) {
         let errorMessage = err.message
         

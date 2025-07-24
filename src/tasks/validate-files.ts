@@ -35,7 +35,7 @@ export async function validateFiles(config: ValidateFilesConfig): Promise<Valida
       const roomData = gitRoom.room || gitRoom
       
       // Validate using Room class
-      Room.validate(roomData)
+      await Room.validate(roomData)
       validFiles++
       
     } catch (error: any) {
