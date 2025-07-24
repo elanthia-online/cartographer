@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/elanthia-online/cartographer/compare/v0.5.0...v0.6.0) (2025-07-24)
+
+
+### Features
+
+* improve userland StringProc architecture and make git generation resumable ([#10](https://github.com/elanthia-online/cartographer/issues/10)) ([75e88db](https://github.com/elanthia-online/cartographer/commit/75e88dbfced84ec684bc0d81328879fd6753d19d))
+
 ## [0.5.0](https://github.com/elanthia-online/cartographer/compare/v0.4.0...v0.5.0) (2025-07-22)
 
 
