@@ -29,11 +29,12 @@ export class Room {
   /**
    * Validates raw room data and creates a new Room instance
    * @param data Unknown data to validate as a room
+   * @param userland Whether to use userland format for cartographer compatibility
    * @returns A new validated Room instance
    */
-  static validate (data : unknown) {
+  static validate (data : unknown, userland = false) {
     const validated = RoomValidator.parse(data)
-    return new Room(validated)
+    return new Room(validated, userland)
   }
 
   /** Stringified version of the validated room data */
@@ -51,12 +52,13 @@ export class Room {
   /**
    * Creates a new Room instance from validated room data
    * @param validated The validated room data
+   * @param userland Whether to use userland format for cartographer compatibility
    */
-  constructor (readonly validated : ValidRoom) {
+  constructor (readonly validated : ValidRoom, userland = false) {
     this.input = stringify(this.validated)
     this.checksum = crypto.createHash("md5").update(this.input).digest("hex")
     this.file = `/rooms/${this.validated.id}/room.json`
-    this.stringprocs = StringProc.transform(validated)
+    this.stringprocs = StringProc.transform(validated, userland)
   }
 
   /**
