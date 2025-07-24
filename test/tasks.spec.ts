@@ -22,7 +22,7 @@ test("tasks can validate dragonrealms mapdb json file", async ()=> {
   await Tasks.validateMapdb({filePath: Dragonrealms.route("/map.json")})
 })
 
-test("tasks can reconstruct mapdb from git directory", async () => {
+test("tasks can build mapdb from git directory", async () => {
   const testDir = "/tmp/test-reconstruct"
   const outputFile = "/tmp/test-reconstructed.json"
 
@@ -86,11 +86,12 @@ test("tasks can reconstruct mapdb from git directory", async () => {
     const project = new Project({ world: "gs" })
     const spinner = ora()
 
-    const results = await Tasks.reconstruct({
+    const results = await Tasks.build({
       project,
       spinner,
       gitDir: testDir,
-      outputFile
+      outputFile,
+      userland: false
     })
 
     // Verify results

@@ -57,8 +57,9 @@ program.command("validate")
   program.command("git")
     .description("outputs the mapdb on the file system that is useful for git")
     .option("--dr", "run in dragonrealms mode", false)
+    .option("-i, --input <file>", "input mapdb.json file path")
     .option("-o, --output <dir>", "output directory for git-compatible files")
-    .action(async (args: {dr: boolean, output?: string})=> {
+    .action(async (args: {dr: boolean, input?: string, output?: string})=> {
       const baseProject = args.dr ? Project.Dragonrealms : Project.Gemstone
       const project = args.output ?
         new Project.Project({world: baseProject.world, outputDir: args.output}) :
@@ -71,8 +72,9 @@ program.command("validate")
       const then = performance.now()
       const spinner = ora()
       const outputLocation = args.output || project.route("/")
-      spinner.start(`seeding git version at mapdb at ${project.route("/map.json")} -> ${outputLocation}...`)
-      const operations = await Tasks.git({project, spinner})
+      const inputFile = args.input || project.route("/map.json")
+      spinner.start(`seeding git version at mapdb at ${inputFile} -> ${outputLocation}...`)
+      const operations = await Tasks.git({project, spinner, inputFile})
       const runtime = Math.round(performance.now() - then)
       spinner.succeed(`[${runtime}ms] created=${operations.created} skipped=${operations.skipped} updated=${operations.updated} errors=${operations.errors.length}`)
       if (operations.errors.length) {
@@ -119,13 +121,15 @@ program.command("validate-files")
     }
   })
 
-program.command("reconstruct")
-  .alias("r")
-  .description("reconstruct a mapdb.json file from git directory structure")
+program.command("build")
+  .alias("b")
+  .description("build mapdb.json from git directory structure")
   .option("--dr", "run in dragonrealms mode", false)
+  .option("--userland", "build in userland format with bundled StringProcs for cartographer.lic", false)
   .option("-i, --input <dir>", "input git directory containing room files")
-  .option("-o, --output <file>", "output file path for reconstructed mapdb.json")
-  .action(async (args: {dr: boolean, input?: string, output?: string})=> {
+  .option("-o, --output <path>", "output file path (standard) or directory path (userland)")
+  .option("-s, --source <file>", "source mapdb.json file path for StringProc recovery")
+  .action(async (args: {dr: boolean, userland: boolean, input?: string, output?: string, source?: string})=> {
     const baseProject = args.dr ? Project.Dragonrealms : Project.Gemstone
 
     if (!args.input) {
@@ -134,7 +138,7 @@ program.command("reconstruct")
     }
 
     if (!args.output) {
-      console.error("Error: --output file path is required")
+      console.error(`Error: --output ${args.userland ? 'directory' : 'file path'} is required`)
       process.exit(1)
     }
 
@@ -143,21 +147,32 @@ program.command("reconstruct")
     const spinner = ora()
 
     try {
-      spinner.start(`reconstructing mapdb from ${args.input}...`)
-      const results = await Tasks.reconstruct({
+      const buildType = args.userland ? "userland" : "standard"
+      spinner.start(`building ${buildType} mapdb from ${args.input}...`)
+      
+      const results = await Tasks.build({
         project,
         spinner,
         gitDir: args.input,
-        outputFile: args.output
+        outputFile: args.userland ? undefined : args.output,
+        outputDir: args.userland ? args.output : undefined,
+        userland: args.userland,
+        sourceMapdbPath: args.source
       })
 
       const runtime = Math.round(performance.now() - then)
 
       if (results.errors.length === 0) {
-        spinner.succeed(`[${runtime}ms] reconstructed ${results.roomsProcessed} rooms to ${args.output}`)
+        if (args.userland) {
+          spinner.succeed(`[${runtime}ms] built ${results.roomsProcessed} rooms to userland format in ${args.output}`)
+          console.log(`Created: ${args.output}/mapdb.json`)
+          console.log(`Created: ${args.output}/stringprocs/`)
+        } else {
+          spinner.succeed(`[${runtime}ms] built ${results.roomsProcessed} rooms to ${args.output}`)
+        }
         process.exit(0)
       } else {
-        spinner.succeed(`[${runtime}ms] reconstructed ${results.roomsProcessed} rooms with ${results.errors.length} errors`)
+        spinner.succeed(`[${runtime}ms] built ${results.roomsProcessed} rooms with ${results.errors.length} errors`)
         console.log("\nErrors encountered:")
         results.errors.forEach(({err, file}) => {
           console.log(`${file}: ${err}`)
